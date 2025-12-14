@@ -2,21 +2,22 @@
 FastAPI 애플리케이션 엔트리 포인트
 """
 
+# src/app/main.py
 from fastapi import FastAPI
-from app.api.routes.users import router as users_router
-from app.api.routes.auth import router as auth_router
 
-app = FastAPI(
-    title="Bookstore",
-    version="1.0.0"
-)
+# 각 기능별 API 라우터들을 import
+# 기능 단위(Auth, Users, Books)로 파일을 분리
+from app.api.routes import Auth, Users, Books, Carts, Orders, Favorites, Reviews
 
-@app.get("/health")
-def health():
+# FastAPI 애플리케이션 객체 생성
+# title은 Swagger(/docs)에 표시될 API 이름
+app = FastAPI(title="Bookstore API Chan")
 
-    # 헬스체크 - 배포 과제 필수
-    return {"status": "OK"}
-
-# User API 등록
-app.include_router(users_router)
-app.include_router(auth_router)
+#api
+app.include_router(Auth.router, prefix="/api/auth", tags=["Auth"])
+app.include_router(Users.router, prefix="/api/users", tags=["Users"])
+app.include_router(Books.router, prefix="/api", tags=["Books"])      # /api/books, /api/public/books
+app.include_router(Carts.router, prefix="/api/carts", tags=["Carts"])
+app.include_router(Orders.router, prefix="/api/orders", tags=["Orders"])
+app.include_router(Favorites.router, prefix="/api/favorites", tags=["Favorites"])
+app.include_router(Reviews.router, prefix="/api", tags=["Reviews"])  # /api/books/{bookId}/reviews, /api/reviews/...
