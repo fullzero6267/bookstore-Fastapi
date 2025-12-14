@@ -11,7 +11,7 @@ from app.models.refresh_token import RefreshToken
 from app.core.config import get_settings
 from jose import jwt, JWTError
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter()
 settings = get_settings()
 
 @router.post("/login", response_model=TokenResponse)

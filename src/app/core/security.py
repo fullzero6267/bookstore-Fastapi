@@ -4,9 +4,11 @@
 - bcrypt로 해시해서 저장
 """
 from datetime import datetime, timedelta, timezone
-from jose import jwt
 from passlib.context import CryptContext
 from app.core.config import get_settings
+from jose import JWTError, jwt
+from fastapi import HTTPException, status
+from app.core.errors import raise_unauthorized
 
 settings = get_settings()
 # 어떤 해시 알고리즘을 쓸지 설정
@@ -24,9 +26,9 @@ def verify_password(password: str, password_hash: str) -> bool:
     return pwd_context.verify(password, password_hash)
 
 def create_access_token(subject: str) -> str:
-    """
-    subject: user_id 또는 email (user_id를 문자열로)
-    """
+
+    #subject: user_id 또는 email (user_id를 문자열로)
+
     settings = get_settings()
     now = datetime.now(timezone.utc)
     exp = now + timedelta(minutes=settings.jwt_access_token_expire_minutes)
@@ -39,10 +41,34 @@ def create_access_token(subject: str) -> str:
     }
     return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
 
+def decode_access_token(token: str) -> dict:
+
+    # Access Token 디코딩, 검증
+    try:
+        payload = jwt.decode(
+            token,
+            settings.jwt_secret,
+            algorithms=[settings.jwt_algorithm],
+        )
+
+        # 토큰 타입 확인 (access 전용)
+        if payload.get("type") != "access":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="INVALID_TOKEN_TYPE",
+            )
+
+        return payload
+
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="INVALID_OR_EXPIRED_TOKEN",
+        )
 
 def create_refresh_token(subject: str, jti: str) -> str:
     """
-    refresh 토큰은 jti(토큰 고유값) 넣어서 DB랑 매칭
+    refresh 토큰은 토큰 고유값(jti) 넣어서 DB랑 매칭
     """
     settings = get_settings()
     now = datetime.now(timezone.utc)
@@ -56,3 +82,16 @@ def create_refresh_token(subject: str, jti: str) -> str:
         "exp": int(exp.timestamp()),
     }
     return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
+
+def decode_token(token: str) -> dict:
+
+    #JWT 토큰 디코딩,서명 검증,exp 검증
+    try:
+        payload = jwt.decode(
+            token,
+            settings.jwt_secret,
+            algorithms=[settings.jwt_algorithm],
+        )
+        return payload
+    except JWTError:
+        raise_unauthorized("INVALID_TOKEN")

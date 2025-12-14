@@ -7,7 +7,7 @@ from fastapi import FastAPI
 
 # 각 기능별 API 라우터들을 import
 # 기능 단위(Auth, Users, Books)로 파일을 분리
-from app.api.routes import Auth, Users, Books, Carts, Orders, Favorites, Reviews
+from app.api.routes import auth, users, books, carts, orders, favorites, reviews
 
 # FastAPI 애플리케이션 객체 생성
 # title은 Swagger(/docs)에 표시될 API 이름

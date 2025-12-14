@@ -10,10 +10,8 @@ from app.core.security import get_password_hash
 from app.models.user import User
 from app.schemas.user import UserCreate, UserResponse
 
-# /users 로 시작하는 API
-router = APIRouter(
-    prefix="/users",
-    tags=["users"]
+# /users 로 시작하는 API main에서 /api 세팅해줌
+router = APIRouter(prefix="/users", tags=["Users"]
 )
 
 @router.post(
@@ -25,12 +23,10 @@ def register_user(
     payload: UserCreate,
     db: Session = Depends(get_db)
 ):
-    """
-    회원가입 API
-    - 이메일 중복 체크
-    - 비밀번호 해시 후 저장
-    """
 
+    """
+    회원가입 API - 이메일 중복 체크- 비밀번호 해시 후 저장
+    """
     # 1. 이메일 중복 확인
     exists = db.query(User).filter(
         User.email == payload.email
@@ -39,7 +35,10 @@ def register_user(
     if exists:
         raise HTTPException(
             status_code=409,
-            detail="DUPLICATE_RESOURCE"
+            detail={
+                "code": "DUPLICATE_RESOURCE",
+                "message": "이미 사용 중인 이메일입니다."
+            }
         )
 
     # 2. User 객체 생성
@@ -57,3 +56,4 @@ def register_user(
     db.refresh(user)
 
     return user
+

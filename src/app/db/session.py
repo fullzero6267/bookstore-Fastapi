@@ -16,10 +16,7 @@ DATABASE_URL = (
 )
 
 # DB 엔진 설정
-engine = create_engine(
-    DATABASE_URL,
-    pool_pre_ping=True, #DB 연결 끊겼는지 미리 체크하기
-)
+engine = create_engine(DATABASE_URL, pool_pre_ping=True) #DB 연결 끊겼는지 미리 체크하기
 
 #세션 팩토리
 SessionLocal = sessionmaker(
@@ -30,6 +27,9 @@ SessionLocal = sessionmaker(
 
 
 def get_db() -> Generator[Session, None, None]:
+    """
+    DB 세션 의존성 요청마다 세션 열고 끝나면 닫아줌
+    """
     db = SessionLocal()
     try:
         yield db
